@@ -8,6 +8,7 @@
 #include <msp430.h>
 #include <legacymsp430.h>
 
+
 // defines for UART mode
 #define RX	BIT1
 #define TX	BIT2
@@ -19,6 +20,11 @@
 
 #define BAUD_RATE 9600;
 
+
+/*
+ * UART functionality
+ *
+ * */
 
 void calculate_baud_rate_selection_9600(void) {
 	/*
@@ -101,9 +107,112 @@ void uart_tx_int(int value) {
 }
 
 
+
+
+/*
+ * I2C functionality
+ *
+ * */
+
+#define SCL BIT6
+#define SDA BIT7
+#define I2C_BAUD_SCALE_LOW 40  // set to approx. 200 kHz
+#define I2C_BAUD_SCALE_HIGH 0  // set to 200 kHz
+
+
+
+void i2c_master_init() {
+
+	P1OUT |= SCL | SDA;
+	P1SEL  |= SCL | SDA;					// selecting UART mode for P1.6 and P1.7 (PortA special function)
+	P1SEL2 |= SCL | SDA;
+	UCB0CTL1 |= UCSWRST;					// bring MSP to SW reset
+	UCB0CTL0 = UCMODE_3 + UCSYNC + UCMST;	// I2C Master, synchronous mode
+	UCB0CTL1 = UCSSEL_2 + UCSWRST;			// Use SMCLK, keep SW reset
+	UCB0BR0 = I2C_BAUD_SCALE_LOW;
+	UCB0BR1 = I2C_BAUD_SCALE_HIGH;
+	//UCB0I2COA = 0x11;						// set a slave address for MSP
+	UCB0CTL1 &= ~UCSWRST;					// Clear SW reset
+
+	//__delay_cycles(10000);
+}
+
+/*
+ * function for sending bytes to an I2C slave
+ * */
+void i2c_writeByte(unsigned int byteCount, unsigned char *data, unsigned char addr) {
+	int counter = 0;
+	UCB0I2CSA = addr;				// set slave address
+	UCB0CTL1 |= UCTR + UCTXSTT ;
+
+	while(counter < byteCount) {
+		while (!(IFG2 & UCB0TXIFG));
+			UCB0TXBUF = *data;
+			data++;
+			counter++;
+	}
+	while (!(IFG2 & UCB0TXIFG));
+		UCB0CTL1 |= UCTXSTP;
+	while(UCB0CTL1 & UCTXSTP);
+}
+
+
+/*
+ * Function for receiving bytes from an I2C slave
+ * */
+unsigned int i2c_rx_counter;
+unsigned int i2c_rx_max;
+unsigned char *i2c_rx_data[];
+unsigned int i2c_active_marker;
+
+unsigned char *i2c_receiveByte(unsigned int byteCount, unsigned char addr) {
+	unsigned char *data[byteCount];
+	int counter = 0;
+
+	UCB0I2CSA = addr;
+	UCB0CTL1 &= ~UCTR;
+	UCB0CTL1 |= UCTXSTT;
+
+
+	if(byteCount == 1) {						// handling if only 1 byte shall be received
+		__delay_cycles(600);
+		UCB0CTL1 |= UCTXSTP;
+		data[counter] = UCB0RXBUF;
+	}
+    if(byteCount != 1) {						// handling for 2 or more bytes
+		while (counter < byteCount) {
+			while (!(IFG2 & UCB0RXIFG));		// wait until IFG is set and data are in Buffer
+			counter++;
+			data[counter-1] = UCB0RXBUF;		// write buffer to array
+			__delay_cycles(100);
+			if(counter+1 == byteCount) {		// send stop condition for only receiving one more byte
+				UCB0CTL1 |= UCTXSTP;
+			}
+		}
+    }
+
+    if(!UCTXSTP){
+    	UCB0CTL1 |= UCTXSTP;
+    }
+	while(UCB0CTL1 & UCTXSTP);
+	return *data;
+}
+
+
+
+/*
+ * Interrupt handler for USCI module (UART and I2C)
+ * */
+
 interrupt(USCIAB0RX_VECTOR) usci_isr(void)	// Interrupt handler for USCI
 {
 	if(uart_isr_rx != 0L) {
 		(uart_isr_rx)(UCA0RXBUF);
 	}
+
+
+}
+
+interrupt(USCIAB0TX_VECTOR) usci_isr_tx(void) {
+
 }
