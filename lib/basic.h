@@ -24,4 +24,5 @@ void goto_powermode_LPM0(void);
 void main_init(void);
 void easy_TimerA_pwm_smclk_50(int period, int onTime, int smclk_div);
 
+
 #endif /* BASIC_H_ */

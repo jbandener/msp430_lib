@@ -164,10 +164,37 @@ unsigned int i2c_rx_counter;
 unsigned int i2c_rx_max;
 unsigned char *i2c_rx_data[];
 unsigned int i2c_active_marker;
+unsigned char *data2[8];
+//unsigned char *data[];
+// TODO: change name of data and make it global. Pointing to that variable might bring some issues. RX function has not yet been tested if pointer is pointing on the right variable
+
+static int received_byte;
+unsigned char i2c_receiveSingleByte(unsigned char addr) {
+	received_byte=0;
+	UCB0I2CSA = addr;
+	UCB0CTL1 &= ~UCTR;
+	UCB0CTL1 |= UCTXSTT;
+	__delay_cycles(600);
+	UCB0CTL1 |= UCTXSTP;
+	while (!(IFG2 & UCB0RXIFG));
+	received_byte = UCB0RXBUF;
+	UCB0CTL1 |= UCTXSTP;
+	if(!UCTXSTP){
+	    	UCB0CTL1 |= UCTXSTP;
+	    }
+	while(UCB0CTL1 & UCTXSTP);
+	//received_byte=255;
+	return received_byte;
+
+}
+
 
 unsigned char *i2c_receiveByte(unsigned int byteCount, unsigned char addr) {
 	unsigned char *data[byteCount];
 	int counter = 0;
+	*data2 = "";
+
+
 
 	UCB0I2CSA = addr;
 	UCB0CTL1 &= ~UCTR;
@@ -177,13 +204,14 @@ unsigned char *i2c_receiveByte(unsigned int byteCount, unsigned char addr) {
 	if(byteCount == 1) {						// handling if only 1 byte shall be received
 		__delay_cycles(600);
 		UCB0CTL1 |= UCTXSTP;
-		data[counter] = UCB0RXBUF;
+		while (!(IFG2 & UCB0RXIFG));
+		data2[counter] = UCB0RXBUF;
 	}
     if(byteCount != 1) {						// handling for 2 or more bytes
 		while (counter < byteCount) {
 			while (!(IFG2 & UCB0RXIFG));		// wait until IFG is set and data are in Buffer
 			counter++;
-			data[counter-1] = UCB0RXBUF;		// write buffer to array
+			data2[counter-1] = UCB0RXBUF;		// write buffer to array
 			__delay_cycles(100);
 			if(counter+1 == byteCount) {		// send stop condition for only receiving one more byte
 				UCB0CTL1 |= UCTXSTP;
@@ -195,7 +223,11 @@ unsigned char *i2c_receiveByte(unsigned int byteCount, unsigned char addr) {
     	UCB0CTL1 |= UCTXSTP;
     }
 	while(UCB0CTL1 & UCTXSTP);
-	return *data;
+
+
+
+
+	return data2;
 }
 
 

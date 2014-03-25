@@ -138,3 +138,5 @@ void easy_TimerA_pwm_smclk_50(int period, int onTime, int smclk_div) {
 }
 
 
+
+
