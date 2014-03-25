@@ -1,5 +1,5 @@
 /*
- * edid.c
+ * eeprom.c
  *
  *  Created on: 25.03.2014
  *      Author: jbandener
