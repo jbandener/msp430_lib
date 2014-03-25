@@ -158,6 +158,30 @@ void i2c_writeByte(unsigned int byteCount, unsigned char *data, unsigned char ad
 
 
 /*
+ * Function for sending a register address with up to 16Bit as an Integer. (required for EEPROM with more than 512 pages)
+ * */
+void i2c_writeInt(unsigned int byteCount, unsigned char *data, unsigned char addr, unsigned int register_value) {
+	int counter = 0;
+	UCB0I2CSA = addr;				// set slave address
+	UCB0CTL1 |= UCTR + UCTXSTT ;
+
+	while (!(IFG2 & UCB0TXIFG));
+	UCB0TXBUF = register_value;
+	counter++;
+
+	while(counter < byteCount) {
+		while (!(IFG2 & UCB0TXIFG));
+			UCB0TXBUF = *data;
+			data++;
+			counter++;
+	}
+	while (!(IFG2 & UCB0TXIFG));
+		UCB0CTL1 |= UCTXSTP;
+	while(UCB0CTL1 & UCTXSTP);
+}
+
+
+/*
  * Function for receiving bytes from an I2C slave
  * */
 unsigned int i2c_rx_counter;
