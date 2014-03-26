@@ -19,6 +19,7 @@ void uart_tx_int(int value);
 
 void i2c_master_init();
 void i2c_writeByte(unsigned int byteCount, unsigned char *data, unsigned char addr);
+void i2c_writeSingleByte(unsigned char data, unsigned char addr);
 void i2c_writeInt(unsigned int byteCount, unsigned char *data, unsigned char addr, unsigned int register_value);
 unsigned char i2c_receiveSingleByte(unsigned char addr);
 unsigned char *i2c_receiveByte(unsigned int byteCount, unsigned char addr);
