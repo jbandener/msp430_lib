@@ -54,9 +54,9 @@ int debugOutput = 1;                 // enable debug output println
 
 void setup() {                
 
-  pinMode(P1_0, OUTPUT);             // enable RED LED as inductor for transmission
+  pinMode(P1_0, OUTPUT);             // enable RED LED as indicator for transmission
   digitalWrite(P1_0, LOW);
-  pinMode(P1_3, INPUT_PULLUP);       // enable P1.3 as input for the Button
+  pinMode(P1_3, INPUT_PULLUP);       // enable P1.3 as input for the button
   Wire.begin();                      // initialize I2C interface controller 
   
   Serial.begin(9600);
@@ -75,7 +75,7 @@ void setup() {
 }
 
 void loop() {
-  button_state = digitalRead(P1_3);       // check for Button on P1.3 pressed
+  button_state = digitalRead(P1_3);       // check if Button on P1.3 pressed
   if (button_state == LOW) {   
     
     //Serial.print("Reading RDAC: D=");
