@@ -13,12 +13,13 @@
 #define RX	BIT1
 #define TX	BIT2
 
-// selections: 	9600 BAUD: 104/0 @ 1MHz CPU clk
+// selections: 	9600 BAUD: 104/0 @ 1MHz CPU clk (LSB[0:7], MSB[8:15])
 //
 //#define BAUD_RATE_SELECTION_0 104;
 //#define BAUD_RATE_SELECTION_1 0;
 
-#define BAUD_RATE 9600;
+//#define BAUD_RATE 9600;
+#define BAUD_RATE 115200;
 
 
 /*
@@ -48,9 +49,37 @@ void calculate_baud_rate_selection_9600(void) {
 	}
 }
 
+void calculate_baud_rate_selection_115200(void) {
+	/*
+	 * calculation for UCA0BR0 and UCA0BR1: CLK_freq / baud_rate = DEVIDER, UCA0BR0 = 8 LSB of DEVIDER, UCA0BR1 = 8 MSB of DEVIDER
+	 * */
+	if (BCSCTL1 == CALBC1_1MHZ) {
+		UCA0BR0 = 8;     						// set the A0 Baud rate control register 0
+		UCA0BR1 = 0;   					       	// set the A0 Baud rate control register 1
+	}
+	else if (BCSCTL1 == CALBC1_8MHZ) {
+		UCA0BR0 = 69;     						// set the A0 Baud rate control register 0
+		UCA0BR1 = 0;   					       	// set the A0 Baud rate control register 1
+	}
+	else if (BCSCTL1 == CALBC1_12MHZ) {
+		UCA0BR0 = 104;     						// set the A0 Baud rate control register 0
+		UCA0BR1 = 0;    				       	// set the A0 Baud rate control register 1
+	}
+	else if (BCSCTL1 == CALBC1_16MHZ) {
+		UCA0BR0 = 138;     						// set the A0 Baud rate control register 0
+		UCA0BR1 = 0;    				       	// set the A0 Baud rate control register 1
+	}
+}
+
 void uart_set_UCA0BRx(void) {
 	int rate = BAUD_RATE;
 	if (rate == 9600) {
+		calculate_baud_rate_selection_9600();
+	}
+	else if (rate == 115200) {
+			calculate_baud_rate_selection_115200();
+	}
+	else {
 		calculate_baud_rate_selection_9600();
 	}
 }
@@ -218,7 +247,7 @@ unsigned char i2c_receiveSingleByte(unsigned char addr) {
 	UCB0I2CSA = addr;
 	UCB0CTL1 &= ~UCTR;
 	UCB0CTL1 |= UCTXSTT;
-	__delay_cycles(400);
+	__delay_cycles(600);
 	UCB0CTL1 |= UCTXSTP;
 	while (!(IFG2 & UCB0RXIFG));
 	received_byte = UCB0RXBUF;

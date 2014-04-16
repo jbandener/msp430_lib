@@ -8,7 +8,7 @@
 #include <msp430g2553.h>
 #include <legacymsp430.h>
 
-#define ADC_DELAY 1  // for 8 MHz CLK speed
+#define ADC_DELAY 1  // for 16 MHz CLK speed and max speed on sampling / min # of averaging (max 200kps)
 //#define ADC_DELAY 100  // for 1 MHz CLK speed
 
 
