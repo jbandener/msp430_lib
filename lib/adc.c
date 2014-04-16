@@ -8,8 +8,13 @@
 #include <msp430g2553.h>
 #include <legacymsp430.h>
 
+#define ADC_DELAY 400  // for 8 MHz CLK speed
+//#define ADC_DELAY 100  // for 1 MHz CLK speed
+
+
 
 void adc_init_p1_4() {
+	P1DIR &= ~BIT4;
 	// Initialize
 	ADC10CTL1 = INCH_4 + ADC10DIV_3 ;         // Channel 4, ADC10CLK/4
 	ADC10CTL0 = SREF_0 + ADC10SHT_3 + ADC10ON + ADC10IE;  //Vcc & Vss as reference
@@ -24,11 +29,11 @@ int adc_read_p1_4() {
 
     // Read value
     int value0 = 0;
-    __delay_cycles(100);
+    __delay_cycles(ADC_DELAY);
     ADC10CTL0 |= ENC + ADC10SC;
-    __delay_cycles(100);
+    __delay_cycles(ADC_DELAY);
     value0 = ADC10MEM;
-    __delay_cycles(100);
+    __delay_cycles(ADC_DELAY);
 
     ADC10CTL1 &= ~(INCH_4 + ADC10DIV_3);
     ADC10AE0 &= ~BIT4;
@@ -38,6 +43,7 @@ int adc_read_p1_4() {
 
 
 void adc_init_p1_5() {
+	P1DIR &= ~BIT5;
 	// Initialize
 	ADC10CTL1 = INCH_5 + ADC10DIV_3 ;         // Channel 5, ADC10CLK/4
 	ADC10CTL0 = SREF_0 + ADC10SHT_3 + ADC10ON + ADC10IE;  //Vcc & Vss as reference
@@ -55,11 +61,11 @@ int adc_read_p1_5() {
 
     // Read value
     int value1 = 0;
-    __delay_cycles(100);
+    __delay_cycles(ADC_DELAY);
     ADC10CTL0 |= ENC + ADC10SC;
-    __delay_cycles(100);
+    __delay_cycles(ADC_DELAY);
     value1 = ADC10MEM;
-    __delay_cycles(100);
+    __delay_cycles(ADC_DELAY);
 
     ADC10CTL1 &= ~(INCH_5 + ADC10DIV_3);
     ADC10AE0 &= ~BIT5;
