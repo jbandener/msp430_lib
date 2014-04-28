@@ -78,8 +78,8 @@ void lcd_sendByte(unsigned char fullbyte) {
  * send command to display
  * */
 void lcd_sendCommand(unsigned char cmd) {
-	__delay_cycles(DELAY_FIXED);
 	lcd_setCommandMode();
+	__delay_cycles(4*DELAY_FIXED);
 	lcd_sendByte(cmd);
 }
 
@@ -87,19 +87,14 @@ void lcd_sendCommand(unsigned char cmd) {
  * send data to display
  * */
 void lcd_sendData(unsigned char data) {
-	__delay_cycles(DELAY_FIXED);
 	lcd_setDataMode();
+	__delay_cycles(4*DELAY_FIXED);
 	lcd_sendByte(data);
 }
 
 void lcd_init() {
 	// set port direction to output
-	LCD_DATA_D |= LCD_D0;
-	LCD_DATA_D |= LCD_D1;
-	LCD_DATA_D |= LCD_D2;
-	LCD_DATA_D |= LCD_D3;
-	LCD_DATA_D |= LCD_E;
-	LCD_DATA_D |= LCD_RS;
+	LCD_DATA_D |= LCD_D0 | LCD_D1 | LCD_D2 | LCD_D3 | LCD_E | LCD_RS;
 	__delay_cycles(DELAY_FIXED);
 
 	// set display mode to 4 bit
