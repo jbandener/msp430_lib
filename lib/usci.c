@@ -147,7 +147,7 @@ void uart_tx_int(int value) {
 #define SDA BIT7
 #define I2C_BAUD_SCALE_LOW 40  // set to approx. 200 kHz
 #define I2C_BAUD_SCALE_HIGH 0  // set to 200 kHz
-
+#define I2C_WRITE_DELAY 40000	// 5ms wait time according to eeprom datasheet (@8MHz)
 
 
 void i2c_master_init() {
@@ -183,6 +183,7 @@ void i2c_writeByte(unsigned int byteCount, unsigned char *data, unsigned char ad
 	while (!(IFG2 & UCB0TXIFG));
 		UCB0CTL1 |= UCTXSTP;
 	while(UCB0CTL1 & UCTXSTP);
+	__delay_cycles(I2C_WRITE_DELAY);
 }
 
 
